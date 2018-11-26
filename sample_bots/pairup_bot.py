@@ -34,7 +34,7 @@ def notify(user):
                                         f'so be patient, please...',
                                  'receiver_id': user_id})
 
-    notifications[user_id] = Timer(2, give_waiting_room_token, kwargs={"user": user})
+    notifications[user_id] = Timer(180, give_waiting_room_token, kwargs={"user": user})
     notifications[user_id].start()
 
 
@@ -45,10 +45,10 @@ def give_waiting_room_token(user):
     token = confirmation_code(user, "waiting")
     chat_namespace.emit('text', {'msg': 'Unfortunately, we couldn\'t find a partner for you. You can wait for '
                                         'someone to enter the game, but we will pay only for the time you spent '
-                                        'in the room until the moment you receive\ this message.',
+                                        'in the room until the moment you receive this message.',
                                  'receiver_id': user_id})
     chat_namespace.emit('text', {'msg': 'However, once you leave this room, you have to enter the following token '
-                                        'into the field on the HIT webpage. Please enter the token and close the '
+                                        'into the token field on the HIT webpage. Please enter the token and close the '
                                         'Waiting Room webpage.',
                                  'receiver_id': user_id})
     chat_namespace.emit('text', {'msg': 'Here\'s your token: {}'
