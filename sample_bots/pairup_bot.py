@@ -56,12 +56,13 @@ def give_waiting_room_token(user):
                                                                            k=6)))),
                                  'receiver_id': user_id})
     del notifications[user_id]
-    del REG[user_id]
+    #del REG[user_id]
 
 
 def confirmation_code(user, gamestate):
     if gamestate == 'waiting':
-        token = str(user['token']['uuid']) + "-03"
+        print('USER', user)
+        token = str(user['id']) + "-03"
         chat_namespace.emit('log', {'type': "confirmation_log", 'message': token, 'room': user['latest_room']['id']})
         return token[:-3]  # user shouldn't see appendix / gamestate
 
