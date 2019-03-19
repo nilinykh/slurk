@@ -29,6 +29,9 @@
     "#image-area": {
       "align-content": "left",
       "margin": "50px 20px 15px"
+    },
+    "#status-box": {
+      "margin-left": "20px"
     }
   },
   "scripts": {

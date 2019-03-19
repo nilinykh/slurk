@@ -53,7 +53,7 @@ def give_waiting_room_token(user):
                                         'Waiting Room webpage.',
                                  'receiver_id': user_id})
     chat_namespace.emit('text', {'msg': 'Here\'s your token: {}'
-                                 .format(format(f'{token}' + ''.join(random.choices(string.ascii_uppercase + string.digits,
+                                 .format(format(''.join(random.choices(string.ascii_uppercase + string.digits,
                                                                                     k=6)))),
                                  'receiver_id': user_id})
     del notifications[user_id]
