@@ -10,6 +10,21 @@ chat_namespace = None
 
 
 class ChatNamespace(BaseNamespace):
+
+    def on_joined_room(self, data):
+        self.emit("command", {'room': data['room']['id'], 'data': [
+        'listen_to', 'new_image_private']})
+        self.emit("command", {'room': data['room']['id'], 'data': [
+        'listen_to', 'new_image_public']})
+        self.emit("command", {'room': data['room']['id'], 'data': [
+        'listen_to', 'print_permissions']})
+        self.emit(
+        "command", {'room': data['room']['id'], 'data': ['listen_to', 'show']})
+        self.emit(
+        "command", {'room': data['room']['id'], 'data': ['listen_to', 'hide']})
+        self.emit(
+        "command", {'room': data['room']['id'], 'data': ['listen_to', 'clear']})
+
     # called when a text message occurred
     def on_message(self, data):
         print("on_message", data)
@@ -19,7 +34,8 @@ class ChatNamespace(BaseNamespace):
         print(data)
         room = data['user']['latest_room']['id']
         if data['type'] == 'join':
-            self.emit('text', {'msg': f"{data['user']['name']} has joined the room. Say \"Hello!\" :)", 'room': room})
+            self.emit('text', {
+                      'msg': f"{data['user']['name']} has joined the room. Say \"Hello!\" :)", 'room': room})
             self.emit('text', {'msg': f"Hello {data['user']['name']}! I have an image for you:",
                                'receiver': data['user']['sid'], 'room': room})
             self.emit('image', {'image': "https://picsum.photos/400/200?" + str(randint(1, 200000000)),
@@ -28,24 +44,41 @@ class ChatNamespace(BaseNamespace):
                                 'height': 200,
                                 'room': room})
         if data['type'] == 'leave':
-            self.emit('text', {'msg': f"{data['user']['name']} has left the room :(", 'room': room})
+            self.emit(
+                'text', {'msg': f"{data['user']['name']} has left the room :(", 'room': room})
 
     # called when '/new_image_public' was sent
     def on_new_image_public(self, data):
         print(data)
-        self.emit('command', {'room': data['room']['id'],
-                              'data': ['new_image', "https://picsum.photos/400/200?" + str(randint(1, 200000000))]})
-        self.emit('log', {'message': "I have received a command, wohoo \o/"})
+        self.emit('set_attribute', {
+            'room': data['room']['id'],
+            'id': "current-image",
+            'attribute': "src",
+            'value': "https://picsum.photos/400/200?" + str(randint(1, 200000000))
+        })
+
+        self.emit('log', {'message': "I have received a command, wohoo \\o/"})
         print(f"new public image requested: {data}")
 
     # called when '/new_image_private' was sent
     def on_new_image_private(self, data):
-        self.emit('command', {'room': data['room']['id'],
-                              'data': ['new_image', "https://picsum.photos/400/200?" + str(randint(1, 200000000)),
-                                       data['user']['id']]})
-        self.emit('log', {'type': "private_image", 'message': "I have received a command, wohoo \o/"})
-        self.emit('log', {'message': "I have received a command, wohoo \o/ 2"})
+        self.emit('set_attribute', {
+            'room': data['room']['id'],
+            'id': "current-image",
+            'attribute': "src",
+            'receiver_id': data['user']['id'],
+            'value': "https://picsum.photos/400/200?" + str(randint(1, 200000000))
+        })
+
+        self.emit('log', {'type': "private_image",
+                          'message': "I have received a command, wohoo \\o/"})
+        self.emit(
+            'log', {'message': "I have received a command, wohoo \\o/ 2"})
         print(f"new private image requested: {data}")
+
+    def on_print_permissions(self, data):
+        self.emit("get_permissions", {
+        "user": data["user"]["id"], "room": data["user"]["latest_room"]["id"]})
 
     @staticmethod
     def on_permissions(data):
@@ -103,17 +136,6 @@ class ChatNamespace(BaseNamespace):
     def on_clear(self, data):
         self.emit("clear_chat", {"room": data["user"]["latest_room"]["id"]})
 
-    def on_print_permissions(self, data):
-        self.emit("get_permissions", {"user": data["user"]["id"], "room": data["user"]["latest_room"]["id"]})
-
-    def on_joined_room(self, data):
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'new_image_private']})
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'new_image_public']})
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'print_permissions']})
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'show']})
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'hide']})
-        self.emit("command", {'room': data['room']['id'], 'data': ['listen_to', 'clear']})
-
 
 class LoginNamespace(BaseNamespace):
     # verify login status
@@ -128,7 +150,7 @@ class LoginNamespace(BaseNamespace):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Example MultiBot')
+    parser = argparse.ArgumentParser(description='Example MinimalBot')
     parser.add_argument('token',
                         help='token for logging in as bot ' +
                         '(see SERVURL/token)')
@@ -143,6 +165,7 @@ if __name__ == '__main__':
     with SocketIO(args.chat_host, args.chat_port) as socketIO:
         login_namespace = socketIO.define(LoginNamespace, '/login')
 
-        login_namespace.emit('connectWithToken', {'token': args.token, 'name': "minimal bot"})
+        login_namespace.emit('connectWithToken', {
+                             'token': args.token, 'name': "minimal bot"})
 
         socketIO.wait()

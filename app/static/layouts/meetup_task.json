@@ -1,6 +1,4 @@
 {
-  "title": "Slurk Test",
-  "subtitle": "This is just a test room",
   "html": [
     {
       "layout-type": "div",
@@ -8,8 +6,8 @@
       "layout-content": [
         {
           "layout-type": "b",
-          "id": "status-text",
-          "layout-content": "This is a test room, have fun!"
+          "layout-content": "Status Text",
+          "id": "status-text"
         },
         {
           "layout-type": "br"
@@ -20,21 +18,6 @@
           "src": "https://media.giphy.com/media/tXL4FHPSnVJ0A/giphy.gif",
           "width": 500,
           "height": 400
-        },
-        {
-          "layout-type": "br"
-        },
-        {
-          "layout-type": "span",
-          "id": "typing"
-        },
-        {
-          "layout-type": "br"
-        },
-        {
-          "layout-type": "button",
-          "layout-content": "Click me!",
-          "onclick": "doMyStuff();"
         }
       ]
     },
@@ -56,11 +39,6 @@
   "scripts": {
     "incoming-message": "display-message",
     "submit-message": "send-message",
-    "print-history": "intercept-history",
-    "plain": [
-      "do-my-stuff"
-    ],
-    "document-ready": "log-resize-events",
-    "typing-users": "typing-users"
+    "print-history": "plain-history"
   }
 }
