@@ -35,7 +35,7 @@ def notify(user):
                                  'receiver_id': user_id})
 
     notifications[user_id] = Timer(
-        2, give_waiting_room_token, kwargs={"user": user})
+        180, give_waiting_room_token, kwargs={"user": user})
     notifications[user_id].start()
 
 

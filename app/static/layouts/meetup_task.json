@@ -32,7 +32,7 @@
     {
        "layout-type": "span",
        "id": "typing"
-        }
+    }
   ],
   "css": {
     "#image-area": {
