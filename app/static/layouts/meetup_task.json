@@ -5,11 +5,6 @@
       "id": "image-area",
       "layout-content": [
         {
-          "layout-type": "b",
-          "layout-content": "Status Text",
-          "id": "status-text"
-        },
-        {
           "layout-type": "br"
         },
         {
