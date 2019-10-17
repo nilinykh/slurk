@@ -1,17 +1,50 @@
 .. _slurk_deployment:
 
 =========================================
-Deploying the system
+Deployment of the system
 =========================================
 
+Using docker
+~~~~~~~~~~~~
+
+As described in :ref:`slurk_gettingstarted`, the easiest way is to use ``docker``:
+
+.. code-block:: bash
+
+  sudo apt-get install docker
+  
+In order to run the server on port 80, just run
+
+.. code-block:: bash
+
+  $ docker run -p 80:5000 -e SECRET_KEY=your-key -d slurk/server
+
+These additional environment variables can be specified:
+
+- ``DEBUG``: admin token is ``00000000-0000-0000-0000-000000000000``
+- ``SQLALCHEMY_DATABASE_URI``: URI to the database, defaults to ``sqlite:///:memory:``
+- ``SQLALCHEMY_TRACK_MODIFICATIONS``: Tracks modifications in the database
+- ``SQLALCHEMY_ECHO``: Prints all executed commands to the database
+- ``DROP_DATABASE_ON_STARTUP``: Database will be recreated on restart
+
+If you don't want to run it detached, you may omit ``-d``.
+
+
+Manual setup
+~~~~~~~~~~~~
+
+If you don't want to use docker for whatever reason, you can also manually setup the server.
+
 General description and requirements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 This section includes information on how to run Slurk on Nginx server (Ubuntu 18.04)
 with SSL connection.
 
 First, you have to be sure that Python3.6+ is installed on your machine. Please navigate to
-``server`` and install required packages via executing::
+``server`` and install required packages via executing
+
+.. code-block:: bash
 
   pip install -r requirements.txt
 
@@ -19,31 +52,39 @@ Also please make sure that your Ubuntu server is running on Nginx [1]_ and ``sys
 Do not forget to check if UFW (Uncomplicated Firewall) is installed on your machine [2]_.
 
 Serving Slurk with Gunicorn
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 You can serve our Flask application on a permanent basis.
 Such setup will allow you to have faster connections which are automatic since you are not required to manually start
 the process with Python, but Nginx will configure everything for you. Most of the instructions are taken or adopted from
 `this tutorial <https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04>`_.
 
-First, isolate your Flask application on your computer. For this you have to install *virtualenv* package.::
+First, isolate your Flask application on your computer. For this you have to install *virtualenv* package.
+
+.. code-block:: bash
 
   sudo apt install python3-venv
 
 Navigate to your project directory and create a new project environment there. Also activate the environment and
-install required packages::
+install required packages
+
+.. code-block:: bash
 
   cd ~/server
   python3.6 -m venv serverenv
   source serverenv/bin/activate
   pip install -r requirements.txt
 
-Now, assuming that *gunicorn* and *flask* are already installed, we will create the WSGI entry point for our application.::
+Now, assuming that *gunicorn* and *flask* are already installed, we will create the WSGI entry point for our application.
+
+.. code-block:: bash
 
   nano ~/server/wsgi.py
 
 The chat instance itself is created in ``~/server/app/__init__.py``, and that is why we will use this instance in our `wsgi.py` file.
-Import this instance into the file, save and close it once you are finished::
+Import this instance into the file, save and close it once you are finished
+
+.. code-block:: python
 
   from app import create_app
 
@@ -52,7 +93,9 @@ Import this instance into the file, save and close it once you are finished::
   if __name__ == "__main__":
       app.run()
 
-Next step would be to configure Gunicorn, but first we should check if the application is served correctly [3]_::
+Next step would be to configure Gunicorn, but first we should check if the application is served correctly [3]_
+
+.. code-block:: bash
 
   cd ~/server
   gunicorn --bind host:5000 -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker wsgi:app
@@ -61,11 +104,15 @@ Visit you server's address with the port ``:5000`` and check if you see the logi
 If it functions properly, please press ``CTRL-C`` in your terminal window and deactivate your environment.
 
 Now we have to create the systemd service unit file. It will allow Ubuntu to automatically start our application
-once the machine boots.::
+once the machine boots.
+
+.. code-block:: bash
 
   sudo nano /etc/systemd/system/chat.service
 
-Fill this service file with information about your application and adjust paths/variable names where required::
+Fill this service file with information about your application and adjust paths/variable names where required
+
+.. code-block:: ini
 
   [Unit]
   Description=Gunicorn instance to serve MeetUp
@@ -81,16 +128,22 @@ Fill this service file with information about your application and adjust paths/
   [Install]
   WantedBy=multi-user.target
 
-Save and close this file. Now we will start the Gunicorn service and enable it so that it is active once our machine is booted::
+Save and close this file. Now we will start the Gunicorn service and enable it so that it is active once our machine is booted
+
+.. code-block:: bash
 
   sudo systemctl start chat
   sudo systemctl enable chat
 
-To be sure that it is active, check its status::
+To be sure that it is active, check its status
+
+.. code-block:: bash
 
   sudo systemctl status chat
 
-The output should be similar to the following::
+The output should be similar to the following
+
+.. code-block:: bash
 
   chat.service - Gunicorn instance to serve meetup
   Loaded: loaded (/etc/systemd/system/chat.service; enabled; vendor preset: enabled)
@@ -102,15 +155,19 @@ The output should be similar to the following::
         └─18103 /home/user/slurk/server/chatenv/bin/python3 /home/user/slurk/server/chatenv/bin/gunicorn --bind unix:chat.sock -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker
 
 Configuring Nginx
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------
 
 At this point our Gunicorn application server must be actively running, and now we have to enable Nginx to accept requests for our application.
-First, we will create a new server block configuration file in Nginx's `sites-available` directory::
+First, we will create a new server block configuration file in Nginx's `sites-available` directory
+
+.. code-block:: bash
 
   sudo nano /etc/nginx/sites-available/chat
 
 We will have to specify location of our socket file, that serves the application
-and include certificates which were created earlier [4]_::
+and include certificates which were created earlier [4]_
+
+.. code-block:: nginx
 
   server {
 
@@ -134,16 +191,22 @@ and include certificates which were created earlier [4]_::
 
       }
 
-Do not forget to link this file to the ``sites-enabled`` directory::
+Do not forget to link this file to the ``sites-enabled`` directory
+
+.. code-block:: bash
 
   sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
 
-Test it for syntax errors and restart Nginx::
+Test it for syntax errors and restart Nginx
+
+.. code-block:: bash
 
   sudo nginx -t
   sudo systemctl restart nginx
 
-As the last step, adjust UFW setting once again, adding full access to the Nginx server::
+As the last step, adjust UFW setting once again, adding full access to the Nginx server
+
+.. code-block:: bash
 
   sudo ufw delete allow 5000
   sudo ufw allow 'Nginx Full'

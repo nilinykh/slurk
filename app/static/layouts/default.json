@@ -1,9 +1,8 @@
 {
-    "subtitle": "Default Room",
-    "html": [
-        {
-            "layout-type": "h1",
-            "layout-content": "This is the default layout. Please provide a layout for this room!"
-        }
-    ]
+    "scripts": {
+        "incoming-text": "display-text",
+        "incoming-image": "display-image",
+        "submit-message": "send-message",
+        "print-history": "plain-history"
+    }
 }
